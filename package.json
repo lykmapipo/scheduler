@@ -1,7 +1,7 @@
 {
-  "name": "iso-lib-starter",
+  "name": "@lykmapipo/scheduler",
   "version": "0.1.0",
-  "description": "Starter for creating reusable, modern, isomorphic javascript libraries using rollup",
+  "description": "A scheduler utility backed by redis and built for node.js",
   "main": "lib/index.js",
   "module": "es/index.js",
   "scripts": {
@@ -23,12 +23,15 @@
   },
   "keywords": [
     "lykmapipo",
-    "iso-lib-starter",
-    "isomophic"
+    "scheduler",
+    "redis",
+    "every",
+    "schedule",
+    "cron"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lykmapipo/iso-lib-starter.git"
+    "url": "git+https://github.com/lykmapipo/scheduler.git"
   },
   "author": {
     "name": "lykmapipo",
@@ -40,19 +43,14 @@
       "name": "lykmapipo",
       "email": "lallyelias87@gmail.com",
       "url": "https://github.com/lykmapipo"
-    },
-    {
-      "name": "Benson Maruchu",
-      "email": "benmaruchu@gmail.com",
-      "url": "https://github.com/BenMaruchu"
     }
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lykmapipo/iso-lib-starter/issues",
+    "url": "https://github.com/lykmapipo/scheduler/issues",
     "email": "lallyelias87@gmail.com"
   },
-  "homepage": "https://github.com/lykmapipo/iso-lib-starter#readme",
+  "homepage": "https://github.com/lykmapipo/scheduler#readme",
   "devDependencies": {
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.1",
@@ -84,7 +82,7 @@
     "mime": "^2.4.6",
     "minimist": "^1.2.5",
     "mocha": "^8.1.1",
-    "npm-check-updates": "^7.0.4",
+    "npm-check-updates": "^7.1.0",
     "nyc": "^15.1.0",
     "prettier": "^2.0.5",
     "rimraf": "^3.0.2",
