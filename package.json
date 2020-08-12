@@ -25,11 +25,9 @@
     "lykmapipo",
     "scheduler",
     "redis",
-    "every",
-    "schedule",
     "cron",
-    "schedule",
     "every",
+    "schedule",
     "now",
     "at",
     "delayed"
