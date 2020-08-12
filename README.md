@@ -27,7 +27,7 @@ npm install @lykmapipo/scheduler --save
 ## Usage
 
 ```js
-import { schedule } from '@lykmapipo/scheduler';
+import { every } from '@lykmapipo/scheduler';
 
 every('2 seconds', (done) => { ... });
 ```
