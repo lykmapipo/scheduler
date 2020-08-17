@@ -21,6 +21,9 @@ import { tryCatch } from '@lykmapipo/common';
  *
  * momentFor(new Date());
  * //=> Moment<...>
+ *
+ * momentFor(new Date(), 'Africa/Nairobi');
+ * //=> Moment<...>
  */
 export const momentFor = (date, timezone) => {
   const tzMoment = moment(date);
@@ -50,6 +53,9 @@ export const momentFor = (date, timezone) => {
  * @example
  *
  * nextCronRunTimeFor('* * * * * *', new Date());
+ * //=> Date
+ *
+ * nextCronRunTimeFor('* * * * * *', new Date(), 'Africa/Nairobi');
  * //=> Date
  */
 export const nextCronRunTimeFor = (pattern, lastRunAt, timezone) => {
@@ -89,6 +95,9 @@ export const nextCronRunTimeFor = (pattern, lastRunAt, timezone) => {
  *
  * nextHumanRunTimeFor('1 second', new Date());
  * //=> Date
+ *
+ * nextHumanRunTimeFor('1 second', new Date(), 'Africa/Nairobi');
+ * //=> Date
  */
 export const nextHumanRunTimeFor = (pattern, lastRunAt, timezone) => {
   // parse cron pattern
@@ -127,7 +136,13 @@ export const nextHumanRunTimeFor = (pattern, lastRunAt, timezone) => {
  * nextRunTimeFor('1 second', new Date());
  * //=> Date
  *
+ * nextRunTimeFor('1 second', new Date(), 'Africa/Nairobi');
+ * //=> Date
+ *
  * nextRunTimeFor('* * * * * *', new Date());
+ * //=> Date
+ *
+ * nextRunTimeFor('* * * * * *', new Date(), 'Africa/Nairobi');
  * //=> Date
  */
 export const nextRunTimeFor = (pattern, lastRunAt, timezone) => {
