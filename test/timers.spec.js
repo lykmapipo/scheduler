@@ -4,6 +4,7 @@ import {
   momentFor,
   nextCronRunTimeFor,
   nextHumanRunTimeFor,
+  nextRunTimeFor,
 } from '../src/timers';
 
 describe('timers', () => {
@@ -44,5 +45,27 @@ describe('timers', () => {
 
     nextRunAt = nextHumanRunTimeFor('5 minutes', lastRunAt);
     expect(nextRunAt.getTime() - lastRunAt.getTime()).to.equal(300000);
+  });
+
+  it('should compute next run time', () => {
+    expect(nextRunTimeFor).to.be.a('function');
+    expect(nextRunTimeFor.name).to.be.equal('nextRunTimeFor');
+    expect(nextRunTimeFor.length).to.be.equal(3);
+
+    const lastRunAt = new Date();
+
+    // cron
+    let nextRunAt = nextRunTimeFor('* * * * * *', lastRunAt);
+    expect(nextRunAt.getSeconds()).to.equal(lastRunAt.getSeconds() + 1);
+
+    nextRunAt = nextRunTimeFor('* * * *', lastRunAt);
+    expect(nextRunAt).to.be.undefined;
+
+    // human
+    nextRunAt = nextRunTimeFor('1 second', lastRunAt);
+    expect(nextRunAt.getTime() - lastRunAt.getTime()).to.equal(1000);
+
+    nextRunAt = nextRunTimeFor('1 sekond', lastRunAt);
+    expect(nextRunAt).to.be.undefined;
   });
 });
