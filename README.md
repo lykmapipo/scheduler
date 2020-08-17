@@ -31,7 +31,7 @@ import { every } from '@lykmapipo/scheduler';
 
 every('2 seconds', (done) => { ... }); // interval-based scheduling
 
-every('*/2 * * * * *', (done) => { ... }); // interval-based scheduling
+every('*/2 * * * * *', (done) => { ... }); // time-based scheduling
 ```
 
 ## Testing
