@@ -8,9 +8,6 @@ import { tryCatch } from '@lykmapipo/common';
  * @function momentFor
  * @name momentFor
  * @description Wrap a given date into moment instance
- *
- * Note!: Use this when you want `time-based scheduling`.
- *
  * @param {Date} date Valid date instance
  * @param {string} [timezone=undefined] Valid timezone
  * @returns {object} moment instance
@@ -22,7 +19,7 @@ import { tryCatch } from '@lykmapipo/common';
  * @public
  * @example
  *
- * momentFor('* * * * * *');
+ * momentFor(new Date());
  * //=> Moment<...>
  */
 export const momentFor = (date, timezone) => {
@@ -38,7 +35,7 @@ export const momentFor = (date, timezone) => {
  * @name nextCronRunTimeFor
  * @description Compute next run time from a given cron pattern
  *
- * Note!: Use this when you want `interval-based scheduling`.
+ * Note!: Use this when you want `time-based scheduling`.
  *
  * @param {string} pattern Valid cron pattern
  * @param {Date} [lastRunAt= new Date()] Last run time
@@ -52,7 +49,7 @@ export const momentFor = (date, timezone) => {
  * @public
  * @example
  *
- * nextCronRunTimeFor('* * * * * *');
+ * nextCronRunTimeFor('* * * * * *', new Date());
  * //=> Date
  */
 export const nextCronRunTimeFor = (pattern, lastRunAt, timezone) => {
@@ -75,6 +72,9 @@ export const nextCronRunTimeFor = (pattern, lastRunAt, timezone) => {
  * @function nextHumanRunTimeFor
  * @name nextHumanRunTimeFor
  * @description Compute next run time from a given human interval pattern
+ *
+ * Note!: Use this when you want `interval-based scheduling`.
+ *
  * @param {string} pattern Valid human interval pattern
  * @param {Date} [lastRunAt= new Date()] Last run time
  * @param {string} [timezone=undefined] Valid timezone
@@ -87,7 +87,7 @@ export const nextCronRunTimeFor = (pattern, lastRunAt, timezone) => {
  * @public
  * @example
  *
- * nextHumanRunTimeFor('1 second');
+ * nextHumanRunTimeFor('1 second', new Date());
  * //=> Date
  */
 export const nextHumanRunTimeFor = (pattern, lastRunAt, timezone) => {
@@ -124,10 +124,10 @@ export const nextHumanRunTimeFor = (pattern, lastRunAt, timezone) => {
  * @public
  * @example
  *
- * nextRunTimeFor('1 second');
+ * nextRunTimeFor('1 second', new Date());
  * //=> Date
  *
- * nextCronRunTimeFor('* * * * * *');
+ * nextRunTimeFor('* * * * * *', new Date());
  * //=> Date
  */
 export const nextRunTimeFor = (pattern, lastRunAt, timezone) => {
