@@ -29,7 +29,9 @@ npm install @lykmapipo/scheduler --save
 ```js
 import { every } from '@lykmapipo/scheduler';
 
-every('2 seconds', (done) => { ... });
+every('2 seconds', (done) => { ... }); // interval-based scheduling
+
+every('*/2 * * * * *', (done) => { ... }); // interval-based scheduling
 ```
 
 ## Testing
