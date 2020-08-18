@@ -1,8 +1,13 @@
 import { expect } from '@lykmapipo/test-helpers';
 import { clear } from '@lykmapipo/redis-common';
-import { createScheduler, createListener, quit } from '../src';
+import {
+  createScheduler,
+  createListener,
+  enableExpiryNotifications,
+  quit,
+} from '../src';
 
-describe('helpers', () => {
+describe('scheduler', () => {
   before((done) => clear(done));
 
   it('should create scheduler redis client', () => {
@@ -39,6 +44,14 @@ describe('helpers', () => {
 
     expect(a.uuid).to.be.equal(b.uuid);
     expect(a.prefix).to.be.equal(b.prefix);
+  });
+
+  it('should enable expiry notifications', (done) => {
+    enableExpiryNotifications((error, results) => {
+      expect(error).to.not.exist;
+      expect(results).to.be.equal('OK');
+      done(error, results);
+    });
   });
 
   it('should quit all redis clients', () => {

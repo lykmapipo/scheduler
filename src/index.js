@@ -3,6 +3,7 @@ import {
   withDefaults,
   createRedisClient,
   quitRedisClient,
+  config,
 } from '@lykmapipo/redis-common';
 
 // local refs
@@ -85,6 +86,29 @@ export const createListener = (optns) => {
 
   // return redis listener client
   return redisClient;
+};
+
+/**
+ * @function enableExpiryNotifications
+ * @name enableExpiryNotifications
+ * @description Enable redis expiry keys notifications
+ * @param {Function} [done] callback to invoke on success or failure
+ * @returns {string} Expiry notification ack
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * enableExpiryNotifications();
+ * enableExpiryNotifications((error, results) => { ... });
+ *
+ */
+export const enableExpiryNotifications = (done) => {
+  // TODO: use env REDIS_NOTIFY_KEYSPACE_EVENTS=xE
+  return config('SET', 'notify-keyspace-events', 'xE', done);
 };
 
 /**
