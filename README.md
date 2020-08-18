@@ -34,6 +34,18 @@ every('2 seconds', (done) => { ... }); // interval-based scheduling
 every('*/2 * * * * *', (done) => { ... }); // time-based scheduling
 ```
 
+## Environment
+
+```js
+REDIS_URL=redis://127.0.0.1:6379
+REDIS_KEY_PREFIX=r
+REDIS_KEY_SEPARATOR=:
+REDIS_EVENT_PREFIX=events
+REDIS_LOCK_PREFIX=locks
+REDIS_SCHEDULER_PREFIX=scheduler
+REDIS_LOCK_TTL=1000
+```
+
 ## Testing
 
 - Clone this repository
