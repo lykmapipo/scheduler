@@ -29,9 +29,9 @@ npm install @lykmapipo/scheduler --save
 ```js
 import { every } from '@lykmapipo/scheduler';
 
-every('2 seconds', (done) => { ... }); // interval-based scheduling
+every('2 seconds', 'sendEmail', (done) => { ... }); // interval-based scheduling
 
-every('*/2 * * * * *', (done) => { ... }); // time-based scheduling
+every('*/2 * * * * *', 'sendEmail', (done) => { ... }); // time-based scheduling
 ```
 
 ## Environment
@@ -42,8 +42,8 @@ REDIS_KEY_PREFIX=r
 REDIS_KEY_SEPARATOR=:
 REDIS_EVENT_PREFIX=events
 REDIS_LOCK_PREFIX=locks
-REDIS_SCHEDULER_PREFIX=scheduler
 REDIS_LOCK_TTL=1000
+REDIS_SCHEDULER_PREFIX=scheduler
 ```
 
 ## Testing
