@@ -112,6 +112,38 @@ export const enableExpiryNotifications = (done) => {
 };
 
 /**
+ * @function isExpiryNotificationsEnabled
+ * @name isExpiryNotificationsEnabled
+ * @description Check if redis expiry keys notifications enabled
+ * @param {Function} [done] callback to invoke on success or failure
+ * @returns {boolean} true if enabled else false
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * isExpiryNotificationsEnabled((error, results) => { ... });
+ *
+ */
+export const isExpiryNotificationsEnabled = (done) => {
+  return config('GET', 'notify-keyspace-events', (error, results) => {
+    if (error) {
+      return done(error);
+    }
+    const enabled = !!(
+      results &&
+      results[1] &&
+      results[1].indexOf('E') > -1 &&
+      results[1].indexOf('x') > -1
+    );
+    return done(null, enabled);
+  });
+};
+
+/**
  * @function quit
  * @name quit
  * @description Quit and restore redis clients states

@@ -4,6 +4,7 @@ import {
   createScheduler,
   createListener,
   enableExpiryNotifications,
+  isExpiryNotificationsEnabled,
   quit,
 } from '../src/redis';
 
@@ -46,11 +47,21 @@ describe('scheduler', () => {
     expect(a.prefix).to.be.equal(b.prefix);
   });
 
-  it('should enable expiry notifications', (done) => {
-    enableExpiryNotifications((error, results) => {
+  it('should check if expiry notifications enabled', (done) => {
+    isExpiryNotificationsEnabled((error, results) => {
       expect(error).to.not.exist;
-      expect(results).to.be.equal('OK');
+      expect(results).to.exist;
       done(error, results);
+    });
+  });
+
+  it('should enable expiry notifications', (done) => {
+    enableExpiryNotifications((/* error, ack */) => {
+      isExpiryNotificationsEnabled((error, enabled) => {
+        expect(error).to.not.exist;
+        expect(enabled).to.be.true;
+        done(error, enabled);
+      });
     });
   });
 
