@@ -5,7 +5,7 @@ import {
   createListener,
   enableExpiryNotifications,
   quit,
-} from '../src';
+} from '../src/redis';
 
 describe('scheduler', () => {
   before((done) => clear(done));
