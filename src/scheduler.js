@@ -188,10 +188,10 @@ export const invokeSchedule = (schedule, done) => {
     return done(new Error('Invalid schedule definition'));
   }
 
-  // try invoke schedule.perform
   // TODO: handle promises/async perform and their return values
   // TODO: save invoke results
   // TODO: pass runtime metadata with data
+  // try invoke schedule.perform
   try {
     const { data = {}, perform } = schedule;
     return perform(data, done);

@@ -1,6 +1,7 @@
 import { expect } from '@lykmapipo/test-helpers';
 import { clear } from '@lykmapipo/redis-common';
 import {
+  withDefaults,
   createScheduler,
   createListener,
   enableExpiryNotifications,
@@ -10,6 +11,21 @@ import {
 
 describe('scheduler', () => {
   before((done) => clear(done));
+
+  it('should provide default options', () => {
+    expect(withDefaults).to.exist.and.be.a('function');
+
+    const options = withDefaults();
+    expect(options).to.exist.and.be.an('object');
+    expect(options.url).to.exist.and.be.equal('redis://127.0.0.1:6379');
+    expect(options.prefix).to.exist.and.be.equal('r');
+    expect(options.separator).to.exist.and.be.equal(':');
+    expect(options.eventPrefix).to.exist.and.be.equal('events');
+    expect(options.lockPrefix).to.exist.and.be.equal('locks');
+    expect(options.lockTtl).to.exist.and.be.equal(1000);
+    expect(options.schedulePrefix).to.exist.and.be.equal('schedules');
+    expect(options.schedulesPath).to.exist.and.not.be.empty;
+  });
 
   it('should create scheduler redis client', () => {
     expect(createScheduler).to.exist.and.be.a('function');
