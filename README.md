@@ -44,6 +44,7 @@ REDIS_EVENT_PREFIX=events
 REDIS_LOCK_PREFIX=locks
 REDIS_LOCK_TTL=1000
 REDIS_SCHEDULER_PREFIX=scheduler
+REDIS_SCHEDULER_SCHEDULE_PATH=`${process.cwd()}/schedules`
 ```
 
 ## Testing

@@ -121,7 +121,7 @@ export const nextHumanRunTimeFor = (pattern, lastRunAt, timezone) => {
  * @function nextRunTimeFor
  * @name nextRunTimeFor
  * @description Compute next run time from a given pattern
- * @param {string} pattern Valid human interval pattern
+ * @param {string} pattern Valid recurrence interval
  * @param {Date} [lastRunAt= new Date()] Last run time
  * @param {string} [timezone=undefined] Valid timezone
  * @returns {Date|Error} Date of next run time or error
