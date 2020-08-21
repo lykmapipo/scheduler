@@ -116,7 +116,7 @@ export const enableExpiryNotifications = (done) => {
  * @name every
  * @description Schedule a function to execute at specified interval
  * @param {string} interval Valid schedule in `human-readable` or `cron` format
- * @param {string} name Valid schedule name
+ * @param {string} name Valid unique schedule name
  * @param {Function} handler Valid function to invoke per recurrence rules
  * @param {object} [optns] Extra data and metadata passed when invoking handler
  * @author lally elias <lallyelias87@gmail.com>
