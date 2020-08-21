@@ -49,13 +49,15 @@ export const clearRegistry = () => {
  *
  * const name = 'sendEmail';
  * const interval = '2 seconds';
- * const perform = () => { ... };
+ * const perform = (data, done) => { return done(null); };
  * isValidSchedule({ name, interval, perform });
  * //=> true
  */
 export const isValidSchedule = (optns) => {
   // no definition
-  if (!optns) return false;
+  if (!optns) {
+    return false;
+  }
 
   // validate defininition
   const isValid =
@@ -90,18 +92,22 @@ export const isValidSchedule = (optns) => {
  *
  * const name = 'sendEmail';
  * const interval = '2 seconds';
- * const perform = () => { ... };
+ * const perform = (data, done) => { return done(null); };
  * defineSchedule({ name, interval, perform });
  * //=> { sendEmail: { ... }, ... }
  */
 export const defineSchedule = (optns) => {
   // ensure valid schedule
   const isNotValid = !isValidSchedule(optns);
-  if (isNotValid) return schedules;
+  if (isNotValid) {
+    return schedules;
+  }
 
   // ensure schedule not exists
   const exist = !!schedules[optns.name];
-  if (exist) return schedules;
+  if (exist) {
+    return schedules;
+  }
 
   // register schedule
   // TODO: compute extra metadata(ttl)
@@ -153,4 +159,43 @@ export const loadPathSchedules = (optns) => {
 
   // return latest schedules
   return schedules;
+};
+
+/**
+ * @function invokeSchedule
+ * @name invokeSchedule
+ * @description Invoke schedule to perform the work
+ * @param {object} schedule Valid schedule definition
+ * @param {Function} done callback to invoke on success or error
+ * @returns {Error|*} error or schedule results
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * const name = 'sendEmail';
+ * const interval = '2 seconds';
+ * const perform = (data, done) => { return done(null, null); };
+ * invokeSchedule({ name, interval, perform }, (error, results) => { ... });
+ */
+export const invokeSchedule = (schedule, done) => {
+  // ensure valid schedule
+  const isNotValid = !isValidSchedule(schedule);
+  if (isNotValid) {
+    return done(new Error('Invalid schedule definition'));
+  }
+
+  // try invoke schedule.perform
+  // TODO: handle promises/async perform and their return values
+  // TODO: save invoke results
+  // TODO: pass runtime metadata with data
+  try {
+    const { data = {}, perform } = schedule;
+    return perform(data, done);
+  } catch (error) {
+    return done(error);
+  }
 };

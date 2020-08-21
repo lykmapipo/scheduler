@@ -130,16 +130,13 @@ export const enableExpiryNotifications = (done) => {
  */
 export const isExpiryNotificationsEnabled = (done) => {
   return config('GET', 'notify-keyspace-events', (error, results) => {
-    if (error) {
-      return done(error);
-    }
     const enabled = !!(
       results &&
       results[1] &&
       results[1].indexOf('E') > -1 &&
       results[1].indexOf('x') > -1
     );
-    return done(null, enabled);
+    return done(error, enabled);
   });
 };
 

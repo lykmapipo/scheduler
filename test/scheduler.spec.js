@@ -5,6 +5,7 @@ import {
   isValidSchedule,
   defineSchedule,
   loadPathSchedules,
+  invokeSchedule,
 } from '../src/scheduler';
 
 describe('registry', () => {
@@ -90,6 +91,66 @@ describe('registry', () => {
     expect(schedules.sendAlert.name).to.be.equal('sendAlert');
     expect(schedules.sendAlert.interval).to.be.equal('2 seconds');
     expect(schedules.sendAlert.perform).to.exist.and.be.a('function');
+  });
+
+  after(() => {
+    clearRegistry();
+  });
+});
+
+describe('invoke', () => {
+  before(() => {
+    clearRegistry();
+  });
+
+  it('should throw if invalid schedule given', (done) => {
+    invokeSchedule({}, (error) => {
+      expect(error).to.exist;
+      expect(error.message).to.be.equal('Invalid schedule definition');
+      done();
+    });
+  });
+
+  it('should handle schedule perform sync error', (done) => {
+    const name = 'sendEmail';
+    const interval = '2 seconds';
+    const perform = () => {
+      throw new Error('Failed');
+    };
+
+    invokeSchedule({ name, interval, perform }, (error) => {
+      expect(error).to.exist;
+      expect(error.message).to.be.equal('Failed');
+      done();
+    });
+  });
+
+  it('should handle schedule perform async error', (done) => {
+    const name = 'sendEmail';
+    const interval = '2 seconds';
+    const perform = (data, cb) => {
+      return cb(new Error('Failed'));
+    };
+
+    invokeSchedule({ name, interval, perform }, (error) => {
+      expect(error).to.exist;
+      expect(error.message).to.be.equal('Failed');
+      done();
+    });
+  });
+
+  it('should invoke schedule', (done) => {
+    const name = 'sendEmail';
+    const interval = '2 seconds';
+    const perform = (data, cb) => {
+      return cb(null, {});
+    };
+
+    invokeSchedule({ name, interval, perform }, (error, results) => {
+      expect(error).to.not.exist;
+      expect(results).to.be.eql({});
+      done();
+    });
   });
 
   after(() => {
