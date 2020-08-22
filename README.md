@@ -38,12 +38,13 @@ every('*/2 * * * * *', 'sendEmail', (done) => { ... }); // time-based scheduling
 
 ```js
 REDIS_URL=redis://127.0.0.1:6379
+REDIS_DB=0
 REDIS_KEY_PREFIX=r
 REDIS_KEY_SEPARATOR=:
 REDIS_EVENT_PREFIX=events
 REDIS_LOCK_PREFIX=locks
 REDIS_LOCK_TTL=1000
-REDIS_SCHEDULE_PREFIX=scheduler
+REDIS_SCHEDULE_PREFIX=schedules
 REDIS_SCHEDULE_PATH=`${process.cwd()}/schedules`
 ```
 
