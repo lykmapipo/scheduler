@@ -69,6 +69,7 @@ export const nextCronRunTimeFor = (pattern, lastRunAt, timezone) => {
   // eslint-disable-next-line no-underscore-dangle
   let nextRun = cronTime._getNextDateFrom(lastRun);
 
+  // TODO: ensure nextRun - lastRun != 0
   // return computed date
   nextRun = nextRun.toDate();
   return nextRun;
@@ -112,6 +113,7 @@ export const nextHumanRunTimeFor = (pattern, lastRunAt, timezone) => {
   // compute next run time moment
   let nextRun = momentFor(new Date(lastRun.valueOf() + humanTime), timezone);
 
+  // TODO: ensure nextRun - lastRun != 0
   // return computed date
   nextRun = nextRun.toDate();
   return nextRun;
@@ -160,6 +162,7 @@ export const nextRunTimeFor = (pattern, lastRunAt, timezone) => {
     );
   }
 
+  // TODO: ensure nextRun - lastRun != 0
   // return computed date
   return nextRun;
 };

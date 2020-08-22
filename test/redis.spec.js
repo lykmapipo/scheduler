@@ -3,6 +3,8 @@ import { clear } from '@lykmapipo/redis-common';
 import {
   withDefaults,
   expiredSubscriptionKeyFor,
+  scheduleExpiryKeyFor,
+  scheduleDataKeyFor,
   createScheduler,
   createListener,
   enableExpiryNotifications,
@@ -41,6 +43,34 @@ describe('scheduler', () => {
     );
     expect(expiredSubscriptionKeyFor({ db: 1 })).to.be.equal(
       '__keyevent@1__:expired'
+    );
+  });
+
+  it('should schedule expiry key', () => {
+    expect(scheduleExpiryKeyFor).to.exist.and.be.a('function');
+
+    const name = 'sendEmail';
+    const interval = '2 seconds';
+
+    expect(scheduleExpiryKeyFor({ name, interval })).to.be.equal(
+      'r:schedules:sendEmail'
+    );
+    expect(scheduleExpiryKeyFor({ name, interval })).to.be.equal(
+      scheduleExpiryKeyFor({ name, interval })
+    );
+  });
+
+  it('should schedule data key', () => {
+    expect(scheduleDataKeyFor).to.exist.and.be.a('function');
+
+    const name = 'sendEmail';
+    const interval = '2 seconds';
+
+    expect(scheduleDataKeyFor({ name, interval })).to.be.equal(
+      'r:schedules:data:sendEmail'
+    );
+    expect(scheduleDataKeyFor({ name, interval })).to.be.equal(
+      scheduleDataKeyFor({ name, interval })
     );
   });
 

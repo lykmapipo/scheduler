@@ -2,6 +2,8 @@ import { forEach, isEmpty, isFunction } from 'lodash';
 import importAll from 'require-all';
 import { mergeObjects } from '@lykmapipo/common';
 
+import { createScheduler, scheduleExpiryKeyFor } from './redis';
+
 // Internal schedules registry
 let schedules = {};
 
@@ -159,6 +161,46 @@ export const loadPathSchedules = (optns) => {
 
   // return latest schedules
   return schedules;
+};
+
+/**
+ * @function isAlreadyScheduled
+ * @name isAlreadyScheduled
+ * @description Check if schedile exists and its ttl has not timeout
+ * @param {object} optns Valid schedule definition
+ * @param {string} optns.name Valid schedule name
+ * @param {Function} done callback to invoke on success or error
+ * @returns {boolean|Error} Whether schedule is active or error
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * const name = 'sendEmail';
+ * const interval = '2 seconds';
+ * const perform = (data, done) => { return done(null); };
+ * isAlreadyScheduled({ name }, (error, isScheduled) => { ... });
+ */
+export const isAlreadyScheduled = (optns, done) => {
+  // ensure redis schedule client
+  const redisClient = createScheduler(optns);
+
+  // derive schedule expiry key
+  const scheduleExpiryKey = scheduleExpiryKeyFor(optns);
+
+  // check if key exists and has expiry set
+  return redisClient.pttl(scheduleExpiryKey, (error, ttl) => {
+    // back-off on error
+    if (error) {
+      return done(error);
+    }
+    // check expiry state
+    const isExpired = !!(ttl && ttl > 0);
+    return done(null, isExpired);
+  });
 };
 
 /**

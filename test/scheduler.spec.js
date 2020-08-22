@@ -1,14 +1,20 @@
 import { expect } from '@lykmapipo/test-helpers';
+import { set, clear } from '@lykmapipo/redis-common';
+
+import { scheduleExpiryKeyFor } from '../src/redis';
 
 import {
   clearRegistry,
   isValidSchedule,
   defineSchedule,
   loadPathSchedules,
+  isAlreadyScheduled,
   invokeSchedule,
 } from '../src/scheduler';
 
 describe('registry', () => {
+  before((done) => clear(done));
+
   before(() => {
     clearRegistry();
   });
@@ -93,12 +99,16 @@ describe('registry', () => {
     expect(schedules.sendAlert.perform).to.exist.and.be.a('function');
   });
 
+  after((done) => clear(done));
+
   after(() => {
     clearRegistry();
   });
 });
 
 describe('invoke', () => {
+  before((done) => clear(done));
+
   before(() => {
     clearRegistry();
   });
@@ -152,6 +162,95 @@ describe('invoke', () => {
       done();
     });
   });
+
+  after((done) => clear(done));
+
+  after(() => {
+    clearRegistry();
+  });
+});
+
+describe('schedule', () => {
+  before(() => {
+    clearRegistry();
+  });
+
+  beforeEach((done) => clear(done));
+
+  it('should check if schedule already exists', (done) => {
+    expect(isAlreadyScheduled).to.be.a('function');
+    expect(isAlreadyScheduled.name).to.be.equal('isAlreadyScheduled');
+    expect(isAlreadyScheduled.length).to.be.equal(2);
+
+    const name = 'sendEmail';
+    const interval = '2 seconds';
+    const perform = (data, cb) => {
+      return cb(new Error('Failed'));
+    };
+
+    isAlreadyScheduled({ name, interval, perform }, (error, isScheduled) => {
+      expect(error).to.not.exist;
+      expect(isScheduled).to.be.false;
+      done(error, isScheduled);
+    });
+  });
+
+  it('should check if schedule exist and expiry not set', (done) => {
+    const name = 'sendEmail';
+    const interval = '2 seconds';
+    const perform = (data, cb) => {
+      return cb(new Error('Failed'));
+    };
+    const expiryKey = scheduleExpiryKeyFor({ name }).replace('r:', '');
+    set(expiryKey, expiryKey, (/* error, results */) => {
+      isAlreadyScheduled({ name, interval, perform }, (error, isScheduled) => {
+        expect(error).to.not.exist;
+        expect(isScheduled).to.be.false;
+        done(error, isScheduled);
+      });
+    });
+  });
+
+  it('should check if schedule exist and has not expired', (done) => {
+    const name = 'sendEmail';
+    const interval = '2 seconds';
+    const perform = (data, cb) => {
+      return cb(new Error('Failed'));
+    };
+    const delay = 500;
+    const expiryKey = scheduleExpiryKeyFor({ name }).replace('r:', '');
+    set(expiryKey, expiryKey, 'PX', delay, 'NX', (/* error, results */) => {
+      isAlreadyScheduled({ name, interval, perform }, (error, isScheduled) => {
+        expect(error).to.not.exist;
+        expect(isScheduled).to.be.true;
+        done(error, isScheduled);
+      });
+    });
+  });
+
+  it('should check if schedule exist and has expired', (done) => {
+    const name = 'sendEmail';
+    const interval = '2 seconds';
+    const perform = (data, cb) => {
+      return cb(new Error('Failed'));
+    };
+    const delay = 500;
+    const expiryKey = scheduleExpiryKeyFor({ name }).replace('r:', '');
+    set(expiryKey, expiryKey, 'PX', delay, 'NX', (/* error, results */) => {
+      setTimeout(() => {
+        isAlreadyScheduled(
+          { name, interval, perform },
+          (error, isScheduled) => {
+            expect(error).to.not.exist;
+            expect(isScheduled).to.be.false;
+            done(error, isScheduled);
+          }
+        );
+      }, 1000);
+    });
+  });
+
+  after((done) => clear(done));
 
   after(() => {
     clearRegistry();

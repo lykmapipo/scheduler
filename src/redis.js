@@ -3,8 +3,10 @@ import { compact, mergeObjects } from '@lykmapipo/common';
 import { getString } from '@lykmapipo/env';
 import {
   withDefaults as withRedisCommonDefaults,
+  keyFor,
   createRedisClient,
   quitRedisClient,
+  quit as quitRedisClients,
   config,
 } from '@lykmapipo/redis-common';
 
@@ -81,10 +83,82 @@ export const withDefaults = (optns) => {
 export const expiredSubscriptionKeyFor = (optns) => {
   // obtain redis db
   const { db } = withDefaults(optns);
-  // derive expires event key
+  // derive expired events subscription key
   const key = `__keyevent@${db}__:expired`;
-  // return key
+  // return expired events subscription key
   return key;
+};
+
+/**
+ * @function scheduleExpiryKeyFor
+ * @name scheduleExpiryKeyFor
+ * @description Generate schedule expiry key
+ * @param {object} [optns] provided options
+ * @param {string} [optns.name] Valid schedule name
+ * @returns {string} schedule expiry key
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * scheduleExpiryKeyFor('sendEmail');
+ * // => 'r:schedules:sendEmail';
+ *
+ * scheduleExpiryKeyFor('send', 'email');
+ * // => 'r:schedules:send:email'
+ *
+ */
+export const scheduleExpiryKeyFor = (optns) => {
+  // obtain options
+  const { schedulePrefix, name } = withDefaults(optns);
+
+  // collect key parts
+  const parts = compact([schedulePrefix, name]);
+
+  // derive schedule expiry key
+  const scheduleExpiryKey = keyFor(...parts);
+
+  // return schedule expiry key
+  return scheduleExpiryKey;
+};
+
+/**
+ * @function scheduleDataKeyFor
+ * @name scheduleDataKeyFor
+ * @description Generate lock key
+ * @param {object} [optns] provided options
+ * @param {string} [optns.name] Valid schedule name
+ * @returns {string} schedule expiry key
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * scheduleDataKeyFor('sendEmail');
+ * // => 'r:schedules:data:sendEmail';
+ *
+ * scheduleDataKeyFor('send', 'email');
+ * // => 'r:schedules:data:send:email'
+ *
+ */
+export const scheduleDataKeyFor = (optns) => {
+  // obtain options
+  const { schedulePrefix, name } = withDefaults(optns);
+
+  // collect key parts
+  const parts = compact([schedulePrefix, 'data', name]);
+
+  // derive schedule data key
+  const scheduleDataKey = keyFor(...parts);
+
+  // return schedule key
+  return scheduleDataKey;
 };
 
 /**
@@ -235,7 +309,9 @@ export const isExpiryNotificationsEnabled = (done) => {
  */
 export const quit = () => {
   // TODO: client.end if callback passed
-  // TODO: quit other redis client
+
+  // quit other redis client
+  const redisClients = quitRedisClients();
 
   // quit all clients
   const clients = [scheduler, listener];
@@ -245,6 +321,6 @@ export const quit = () => {
   scheduler = null;
   listener = null;
 
-  // return redis client states
-  return { scheduler, listener };
+  // return redis clients state
+  return { ...redisClients, scheduler, listener };
 };
