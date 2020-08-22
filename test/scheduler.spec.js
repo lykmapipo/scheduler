@@ -9,6 +9,7 @@ import {
   defineSchedule,
   loadPathSchedules,
   isAlreadyScheduled,
+  scheduleNextRun,
   invokeSchedule,
 } from '../src/scheduler';
 
@@ -248,6 +249,50 @@ describe('schedule', () => {
         );
       }, 1000);
     });
+  });
+
+  it('should schedule next run from human interval', (done) => {
+    const name = 'sendEmail';
+    const interval = '1 second';
+    const lastRunAt = new Date();
+    const perform = (data, cb) => {
+      return cb(new Error('Failed'));
+    };
+    scheduleNextRun(
+      { name, interval, lastRunAt, perform },
+      (error, { nextRunAt }) => {
+        expect(error).to.not.exist;
+        expect(nextRunAt).to.exist;
+        expect(nextRunAt.getTime() - lastRunAt.getTime()).to.equal(1000);
+        isAlreadyScheduled({ name, interval, perform }, (err, isScheduled) => {
+          expect(err).to.not.exist;
+          expect(isScheduled).to.be.true;
+          done(err, isScheduled);
+        });
+      }
+    );
+  });
+
+  it('should schedule next run from cron interval', (done) => {
+    const name = 'sendEmail';
+    const interval = '* * * * * *';
+    const lastRunAt = new Date();
+    const perform = (data, cb) => {
+      return cb(new Error('Failed'));
+    };
+    scheduleNextRun(
+      { name, interval, lastRunAt, perform },
+      (error, { nextRunAt }) => {
+        expect(error).to.not.exist;
+        expect(nextRunAt).to.exist;
+        expect(nextRunAt.getSeconds()).to.equal(lastRunAt.getSeconds() + 1);
+        isAlreadyScheduled({ name, interval, perform }, (err, isScheduled) => {
+          expect(err).to.not.exist;
+          expect(isScheduled).to.be.true;
+          done(err, isScheduled);
+        });
+      }
+    );
   });
 
   after((done) => clear(done));

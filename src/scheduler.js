@@ -2,7 +2,8 @@ import { forEach, isEmpty, isFunction } from 'lodash';
 import importAll from 'require-all';
 import { mergeObjects } from '@lykmapipo/common';
 
-import { createScheduler, scheduleExpiryKeyFor } from './redis';
+import { nextRunTimeFor } from './timers';
+import { createScheduler, scheduleExpiryKeyFor, withDefaults } from './redis';
 
 // Internal schedules registry
 let schedules = {};
@@ -201,6 +202,63 @@ export const isAlreadyScheduled = (optns, done) => {
     const isExpired = !!(ttl && ttl > 0);
     return done(null, isExpired);
   });
+};
+
+/**
+ * @function scheduleNextRun
+ * @name scheduleNextRun
+ * @description Invoke schedule to perform the work
+ * @param {object} optns Valid schedule definition
+ * @param {string} optns.name Valid schedule name
+ * @param {string} optns.interval Valid recurrence interval
+ * @param {Date} [optns.lastRunAt=new Date()] Valid last run time
+ * @param {string} [optns.timezone] Valid timezone
+ * @param {Function} done callback to invoke on success or error
+ * @returns {Error|*} error or schedule results
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * const name = 'sendEmail';
+ * const interval = '2 seconds';
+ * const lastRunAt = new Date();
+ * const perform = (data, done) => { return done(null, null); };
+ * scheduleNextRun({ name, interval, lastRunAt }, (error, results) => { ... });
+ */
+export const scheduleNextRun = (optns, done) => {
+  // ensure options
+  const now = new Date();
+  const { interval, lastRunAt = now, timezone } = withDefaults(optns);
+
+  // ensure redis schedule client
+  const redisClient = createScheduler(optns);
+
+  // derive schedule expiry key
+  const scheduleExpiryKey = scheduleExpiryKeyFor(optns);
+
+  // compute next run time
+  const nextRunAt = nextRunTimeFor(interval, lastRunAt, timezone);
+  const scheduleDelay = nextRunAt.getTime() - now.getTime();
+
+  // schedule next expiry
+  return redisClient.set(
+    scheduleExpiryKey,
+    scheduleExpiryKey,
+    'PX',
+    scheduleDelay,
+    'NX',
+    (error /* , results */) => {
+      if (error) {
+        return done(error);
+      }
+      const results = { nextRunAt };
+      return done(null, results);
+    }
+  );
 };
 
 /**
