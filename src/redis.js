@@ -57,6 +57,37 @@ export const withDefaults = (optns) => {
 };
 
 /**
+ * @function expiredSubscriptionKeyFor
+ * @name expiredSubscriptionKeyFor
+ * @description Obtain key to subscribe on key expired events
+ * @param {object} [optns] provided options
+ * @param {string} [optns.db=0] Valid redis database number
+ * @returns {string} key expires event subscription key
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * expiredSubscriptionKeyFor();
+ * //=> __keyevent@0__:expired
+ *
+ * expiredSubscriptionKeyFor({ db:2 });
+ * //=> __keyevent@2__:expired
+ *
+ */
+export const expiredSubscriptionKeyFor = (optns) => {
+  // obtain redis db
+  const { db } = withDefaults(optns);
+  // derive expires event key
+  const key = `__keyevent@${db}__:expired`;
+  // return key
+  return key;
+};
+
+/**
  * @function createScheduler
  * @name createScheduler
  * @description Create redis client for registering schedules

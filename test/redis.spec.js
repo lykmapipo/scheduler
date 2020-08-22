@@ -2,6 +2,7 @@ import { expect } from '@lykmapipo/test-helpers';
 import { clear } from '@lykmapipo/redis-common';
 import {
   withDefaults,
+  expiredSubscriptionKeyFor,
   createScheduler,
   createListener,
   enableExpiryNotifications,
@@ -26,6 +27,21 @@ describe('scheduler', () => {
     expect(options.lockTtl).to.exist.and.be.equal(1000);
     expect(options.schedulePrefix).to.exist.and.be.equal('schedules');
     expect(options.schedulesPath).to.exist.and.not.be.empty;
+  });
+
+  it('should derive key expired events subscription key', () => {
+    expect(expiredSubscriptionKeyFor).to.exist.and.be.a('function');
+
+    expect(expiredSubscriptionKeyFor()).to.be.equal('__keyevent@0__:expired');
+    expect(expiredSubscriptionKeyFor({ db: undefined })).to.be.equal(
+      '__keyevent@0__:expired'
+    );
+    expect(expiredSubscriptionKeyFor({ db: null })).to.be.equal(
+      '__keyevent@0__:expired'
+    );
+    expect(expiredSubscriptionKeyFor({ db: 1 })).to.be.equal(
+      '__keyevent@1__:expired'
+    );
   });
 
   it('should create scheduler redis client', () => {
