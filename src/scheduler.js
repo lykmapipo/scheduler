@@ -121,9 +121,9 @@ export const defineSchedule = (optns) => {
 };
 
 /**
- * @function loadPathSchedules
- * @name loadPathSchedules
- * @description Load schedules into registry
+ * @function loadSchedules
+ * @name loadSchedules
+ * @description Load schedules from path into registry
  * @param {object} optns Valid options
  * @param {string} [optns.schedulesPath] Valid schedules path
  * @returns {object} Latest schedules registry
@@ -135,13 +135,13 @@ export const defineSchedule = (optns) => {
  * @public
  * @example
  *
- * loadPathSchedules();
+ * loadSchedules();
  * //=> { 'sendEmail': { ... }, ... }
  *
- * loadPathSchedules({ schedulesPath: `${process.cwd()}/schedules` });
+ * loadSchedules({ schedulesPath: `${process.cwd()}/schedules` });
  * //=> { 'sendEmail': { ... }, ... }
  */
-export const loadPathSchedules = (optns) => {
+export const loadSchedules = (optns) => {
   // TODO: merge with default schedules path
   try {
     // load path schedules
@@ -167,7 +167,7 @@ export const loadPathSchedules = (optns) => {
 /**
  * @function isAlreadyScheduled
  * @name isAlreadyScheduled
- * @description Check if schedile exists and its ttl has not timeout
+ * @description Check if schedule exists and its ttl has not timeout
  * @param {object} optns Valid schedule definition
  * @param {string} optns.name Valid schedule name
  * @param {Function} done callback to invoke on success or error
@@ -207,7 +207,7 @@ export const isAlreadyScheduled = (optns, done) => {
 /**
  * @function scheduleNextRun
  * @name scheduleNextRun
- * @description Invoke schedule to perform the work
+ * @description Compute and set schedule next expiry time
  * @param {object} optns Valid schedule definition
  * @param {string} optns.name Valid schedule name
  * @param {string} optns.interval Valid recurrence interval
