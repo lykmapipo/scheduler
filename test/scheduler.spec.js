@@ -7,7 +7,7 @@ import {
   clearRegistry,
   isValidSchedule,
   defineSchedule,
-  loadPathSchedules,
+  loadSchedules,
   isAlreadyScheduled,
   scheduleNextRun,
   invokeSchedule,
@@ -77,7 +77,7 @@ describe('registry', () => {
   });
 
   it('should load path schedules', () => {
-    const schedules = loadPathSchedules({
+    const schedules = loadSchedules({
       schedulesPath: `${__dirname}/fixtures/schedules`,
     });
 
