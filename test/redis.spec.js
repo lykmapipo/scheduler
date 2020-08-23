@@ -143,4 +143,5 @@ describe('scheduler', () => {
   });
 
   after((done) => clear(done));
+  after(() => quit());
 });

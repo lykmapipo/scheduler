@@ -259,6 +259,7 @@ export const createListener = (optns) => {
  */
 export const enableExpiryNotifications = (done) => {
   // TODO: use env REDIS_NOTIFY_KEYSPACE_EVENTS=xE
+  // TODO: support optns
   return config('SET', 'notify-keyspace-events', 'xE', done);
 };
 
@@ -280,6 +281,7 @@ export const enableExpiryNotifications = (done) => {
  *
  */
 export const isExpiryNotificationsEnabled = (done) => {
+  // TODO: support optns
   return config('GET', 'notify-keyspace-events', (error, results) => {
     const enabled = !!(
       results &&
@@ -308,6 +310,7 @@ export const isExpiryNotificationsEnabled = (done) => {
  *
  */
 export const quit = () => {
+  // TODO: support optns
   // TODO: client.end if callback passed
 
   // quit other redis client

@@ -1,7 +1,11 @@
 import { expect } from '@lykmapipo/test-helpers';
 import { set, clear } from '@lykmapipo/redis-common';
 
-import { scheduleExpiryKeyFor } from '../src/redis';
+import {
+  expiredSubscriptionKeyFor,
+  scheduleExpiryKeyFor,
+  quit,
+} from '../src/redis';
 
 import {
   clearRegistry,
@@ -10,6 +14,7 @@ import {
   loadSchedules,
   isAlreadyScheduled,
   scheduleNextRun,
+  subscribeForScheduleExpiry,
   invokeSchedule,
 } from '../src/scheduler';
 
@@ -300,4 +305,37 @@ describe('schedule', () => {
   after(() => {
     clearRegistry();
   });
+});
+
+describe('subscribe', () => {
+  before(() => {
+    clearRegistry();
+  });
+
+  beforeEach((done) => clear(done));
+
+  it('should occur successfully', (done) => {
+    expect(subscribeForScheduleExpiry).to.be.a('function');
+    expect(subscribeForScheduleExpiry.name).to.be.equal(
+      'subscribeForScheduleExpiry'
+    );
+    expect(subscribeForScheduleExpiry.length).to.be.equal(2);
+
+    const handleExpiredKey = (/* channel, expiredKey */) => {};
+    const optns = { handleExpiredKey };
+    subscribeForScheduleExpiry(optns, (error, results) => {
+      expect(error).to.not.exist;
+      expect(results).to.exist;
+      expect(results).to.be.equal(expiredSubscriptionKeyFor(optns));
+      done(error, results);
+    });
+  });
+
+  after((done) => clear(done));
+
+  after(() => {
+    clearRegistry();
+  });
+
+  after(() => quit());
 });

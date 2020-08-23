@@ -3,7 +3,13 @@ import importAll from 'require-all';
 import { mergeObjects } from '@lykmapipo/common';
 
 import { nextRunTimeFor } from './timers';
-import { createScheduler, scheduleExpiryKeyFor, withDefaults } from './redis';
+import {
+  expiredSubscriptionKeyFor,
+  createListener,
+  createScheduler,
+  scheduleExpiryKeyFor,
+  withDefaults,
+} from './redis';
 
 // Internal schedules registry
 let schedules = {};
@@ -259,6 +265,49 @@ export const scheduleNextRun = (optns, done) => {
       return done(null, results);
     }
   );
+};
+
+/**
+ * @function subscribeForScheduleExpiry
+ * @name subscribeForScheduleExpiry
+ * @description Subscribe for key expired events and invoke given hanlder
+ * @param {object} optns Valid options
+ * @param {string} [optns.db=0] Valid redis database number
+ * @param {Function} optns.handleExpiredKey Valid key expired hanlder
+ * @param {Function} done callback to invoke on success or error
+ * @returns {Error|*} error or schedule results
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * const handleExpiredKey = (channel, expiredKey) => { ... };
+ * subscribeForScheduleExpiry({ handleExpiredKey }, (err, result) => { ... });
+ */
+export const subscribeForScheduleExpiry = (optns, done) => {
+  // ensure options
+  const { handleExpiredKey } = withDefaults(optns);
+
+  // ensure redis listener client
+  const redisClient = createListener(optns);
+
+  // derive expiry events subscription key
+  const expiredSubscriptionKey = expiredSubscriptionKeyFor(optns);
+
+  // listen for key expired events
+  redisClient.on('message', (channel, expiredKey) => {
+    // TODO: test if the expired key is for scheduler
+    // TODO: try...catch to to avoid crashes
+    return handleExpiredKey(channel, expiredKey);
+  });
+
+  // TODO: enableExpiryNotifications(optns, done);
+  // TODO: const cb = wrapCallback(done);
+  // subscribe for key expired events
+  return redisClient.subscribe(expiredSubscriptionKey, done);
 };
 
 /**
