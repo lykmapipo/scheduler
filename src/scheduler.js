@@ -300,8 +300,15 @@ export const subscribeForScheduleExpiry = (optns, done) => {
   // listen for key expired events
   redisClient.on('message', (channel, expiredKey) => {
     // TODO: test if the expired key is for scheduler
-    // TODO: try...catch to to avoid crashes
-    return handleExpiredKey(channel, expiredKey);
+    // TODO:events.emit('schedule error', new Error('Unknown expiry key'))
+
+    // safe invoke key expired event handler
+    try {
+      handleExpiredKey(channel, expiredKey);
+    } catch (error) {
+      /* ignore */
+      // TODO:events.emit('schedule error', error);
+    }
   });
 
   // TODO: enableExpiryNotifications(optns, done);

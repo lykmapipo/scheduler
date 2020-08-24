@@ -1,3 +1,4 @@
+import { noop } from 'lodash';
 import { expect } from '@lykmapipo/test-helpers';
 import { set, clear } from '@lykmapipo/redis-common';
 
@@ -330,6 +331,26 @@ describe('subscribe', () => {
       done(error, results);
     });
   });
+
+  it('should handle key expired events', (done) => {
+    const name = 'sendEmail';
+    const interval = '1 second';
+    const lastRunAt = new Date();
+    const perform = (data, cb) => {
+      return cb(new Error('Failed'));
+    };
+    const handleExpiredKey = (channel, expiredKey) => {
+      expect(channel).to.be.equal(expiredSubscriptionKeyFor({}));
+      expect(expiredKey).to.be.equal(scheduleExpiryKeyFor({ name }));
+      done();
+    };
+    const optns = { name, interval, lastRunAt, perform, handleExpiredKey };
+
+    subscribeForScheduleExpiry(optns, noop);
+    scheduleNextRun(optns, noop);
+  });
+
+  it.skip('should handle key expired events with error');
 
   after((done) => clear(done));
 
