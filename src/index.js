@@ -38,6 +38,7 @@ export const clear = () => {
   // TODO: obtain scheduler keys wildcard
   // TODO: clear schedules expiry keys(r:schedules:keys*)
   // TODO: clear schedules data(r:schedules:data*)
+  // TODO: clear schedules locks(r:locks:schedules:data*)
   // TODO: reset schedule registry
 };
 

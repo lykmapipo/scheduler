@@ -267,6 +267,8 @@ export const scheduleNextRun = (optns, done) => {
   );
 };
 
+// export const schedule = () => {};
+
 /**
  * @function subscribeForScheduleExpiry
  * @name subscribeForScheduleExpiry
@@ -356,3 +358,5 @@ export const invokeSchedule = (schedule, done) => {
     return done(error);
   }
 };
+
+// export const runSchedule = () => {};

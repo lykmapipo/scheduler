@@ -9,6 +9,7 @@ import {
   createListener,
   enableKeyspaceEvents,
   isKeyspaceEventsEnabled,
+  acquireScheduleLock,
   quit,
 } from '../src/redis';
 
@@ -159,6 +160,45 @@ describe('redis', () => {
     const quited = quit();
     expect(quited.scheduler).to.not.exist;
     expect(quited.listener).to.not.exist;
+  });
+
+  after((done) => clear(done));
+  after(() => quit());
+});
+
+describe('lock', () => {
+  beforeEach((done) => clear(done));
+
+  it('should be acquired with default ttl', (done) => {
+    const name = 'sendReport';
+    const optns = { name };
+    acquireScheduleLock(optns, (error, unlock) => {
+      expect(error).to.not.exist;
+      expect(unlock).to.exist.and.be.a('function');
+      done(error, unlock);
+    });
+  });
+
+  it('should be acquired with custom ttl', (done) => {
+    const name = 'sendReport';
+    const lockTtl = 2000;
+    const optns = { name, lockTtl };
+    acquireScheduleLock(optns, (error, unlock) => {
+      expect(error).to.not.exist;
+      expect(unlock).to.exist.and.be.a('function');
+      done(error, unlock);
+    });
+  });
+
+  it('should unlock', (done) => {
+    const name = 'sendReport';
+    const lockTtl = 2000;
+    const optns = { name, lockTtl };
+    acquireScheduleLock(optns, (error, unlock) => {
+      expect(error).to.not.exist;
+      expect(unlock).to.exist.and.be.a('function');
+      unlock(done);
+    });
   });
 
   after((done) => clear(done));

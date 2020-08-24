@@ -8,6 +8,7 @@ import {
   quitRedisClient,
   quit as quitRedisClients,
   config,
+  lock,
 } from '@lykmapipo/redis-common';
 
 // local refs
@@ -317,6 +318,39 @@ export const isKeyspaceEventsEnabled = (optns, done) => {
     );
     return cb(error, enabled);
   });
+};
+
+/**
+ * @function acquireScheduleLock
+ * @name acquireScheduleLock
+ * @description Acquire lock to register schedule
+ * @param {object} optns Provided options
+ * @param {string} optns.name Valid schedule name
+ * @param {number} [optns.lockTtl=1000] Valid schedule lock ttl in milliseconds
+ * @param {Function} done callback to invoke on success or error
+ * @returns {Error|Function} error or unlock callback
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * const name = 'sendEmail';
+ * const lockTtl = 1000
+ * const optns = { name, lockTtl };
+ * acquireScheduleLock(optns, (error, unlock) => { ... });
+ */
+export const acquireScheduleLock = (optns, done) => {
+  // ensure options
+  const { name, lockTtl, schedulePrefix, separator } = withDefaults(optns);
+
+  // derive schedule key
+  const key = [schedulePrefix, name].join(separator);
+
+  // acquire lock
+  return lock(key, lockTtl, done);
 };
 
 /**
