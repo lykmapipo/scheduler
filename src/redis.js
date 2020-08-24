@@ -347,9 +347,42 @@ export const acquireScheduleLock = (optns, done) => {
   const { name, lockTtl, schedulePrefix, separator } = withDefaults(optns);
 
   // derive schedule key
-  const key = [schedulePrefix, name].join(separator);
+  const key = [schedulePrefix, 'next', name].join(separator);
 
   // acquire lock
+  return lock(key, lockTtl, done);
+};
+
+/**
+ * @function acquireWorkLock
+ * @name acquireWorkLock
+ * @description Acquire lock to invoke schedule
+ * @param {object} optns Provided options
+ * @param {string} optns.name Valid schedule name
+ * @param {number} [optns.lockTtl=1000] Valid schedule lock ttl in milliseconds
+ * @param {Function} done callback to invoke on success or error
+ * @returns {Error|Function} error or unlock callback
+ * @author lally elias <lallyelias87@gmail.com>
+ * @license MIT
+ * @since 0.1.0
+ * @version 0.1.0
+ * @static
+ * @public
+ * @example
+ *
+ * const name = 'sendEmail';
+ * const lockTtl = 1000
+ * const optns = { name, lockTtl };
+ * acquireWorkLock(optns, (error, unlock) => { ... });
+ */
+export const acquireWorkLock = (optns, done) => {
+  // ensure options
+  const { name, lockTtl, schedulePrefix, separator } = withDefaults(optns);
+
+  // derive schedule work key
+  const key = [schedulePrefix, 'work', name].join(separator);
+
+  // acquire schedule work lock
   return lock(key, lockTtl, done);
 };
 

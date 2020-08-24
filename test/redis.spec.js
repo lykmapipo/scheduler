@@ -10,6 +10,7 @@ import {
   enableKeyspaceEvents,
   isKeyspaceEventsEnabled,
   acquireScheduleLock,
+  acquireWorkLock,
   quit,
 } from '../src/redis';
 
@@ -169,7 +170,7 @@ describe('redis', () => {
 describe('lock', () => {
   beforeEach((done) => clear(done));
 
-  it('should be acquired with default ttl', (done) => {
+  it('should acquire schedule lock with default ttl', (done) => {
     const name = 'sendReport';
     const optns = { name };
     acquireScheduleLock(optns, (error, unlock) => {
@@ -179,7 +180,7 @@ describe('lock', () => {
     });
   });
 
-  it('should be acquired with custom ttl', (done) => {
+  it('should acquire schedule lock with custom ttl', (done) => {
     const name = 'sendReport';
     const lockTtl = 2000;
     const optns = { name, lockTtl };
@@ -190,11 +191,43 @@ describe('lock', () => {
     });
   });
 
-  it('should unlock', (done) => {
+  it('should unlock schedule lock', (done) => {
     const name = 'sendReport';
     const lockTtl = 2000;
     const optns = { name, lockTtl };
     acquireScheduleLock(optns, (error, unlock) => {
+      expect(error).to.not.exist;
+      expect(unlock).to.exist.and.be.a('function');
+      unlock(done);
+    });
+  });
+
+  it('should acquire work lock with default ttl', (done) => {
+    const name = 'sendReport';
+    const optns = { name };
+    acquireWorkLock(optns, (error, unlock) => {
+      expect(error).to.not.exist;
+      expect(unlock).to.exist.and.be.a('function');
+      done(error, unlock);
+    });
+  });
+
+  it('should acquire work lock with custom ttl', (done) => {
+    const name = 'sendReport';
+    const lockTtl = 2000;
+    const optns = { name, lockTtl };
+    acquireWorkLock(optns, (error, unlock) => {
+      expect(error).to.not.exist;
+      expect(unlock).to.exist.and.be.a('function');
+      done(error, unlock);
+    });
+  });
+
+  it('should unlock work lock', (done) => {
+    const name = 'sendReport';
+    const lockTtl = 2000;
+    const optns = { name, lockTtl };
+    acquireWorkLock(optns, (error, unlock) => {
       expect(error).to.not.exist;
       expect(unlock).to.exist.and.be.a('function');
       unlock(done);
