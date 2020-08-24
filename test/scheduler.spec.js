@@ -2,11 +2,7 @@ import { noop } from 'lodash';
 import { expect } from '@lykmapipo/test-helpers';
 import { set, clear } from '@lykmapipo/redis-common';
 
-import {
-  expiredSubscriptionKeyFor,
-  scheduleExpiryKeyFor,
-  quit,
-} from '../src/redis';
+import { expiredEventsKeyFor, expiryKeyFor, quit } from '../src/redis';
 
 import {
   clearRegistry,
@@ -208,7 +204,7 @@ describe('schedule', () => {
     const perform = (data, cb) => {
       return cb(new Error('Failed'));
     };
-    const expiryKey = scheduleExpiryKeyFor({ name }).replace('r:', '');
+    const expiryKey = expiryKeyFor({ name }).replace('r:', '');
     set(expiryKey, expiryKey, (/* error, results */) => {
       isAlreadyScheduled({ name, interval, perform }, (error, isScheduled) => {
         expect(error).to.not.exist;
@@ -225,7 +221,7 @@ describe('schedule', () => {
       return cb(new Error('Failed'));
     };
     const delay = 500;
-    const expiryKey = scheduleExpiryKeyFor({ name }).replace('r:', '');
+    const expiryKey = expiryKeyFor({ name }).replace('r:', '');
     set(expiryKey, expiryKey, 'PX', delay, 'NX', (/* error, results */) => {
       isAlreadyScheduled({ name, interval, perform }, (error, isScheduled) => {
         expect(error).to.not.exist;
@@ -242,7 +238,7 @@ describe('schedule', () => {
       return cb(new Error('Failed'));
     };
     const delay = 500;
-    const expiryKey = scheduleExpiryKeyFor({ name }).replace('r:', '');
+    const expiryKey = expiryKeyFor({ name }).replace('r:', '');
     set(expiryKey, expiryKey, 'PX', delay, 'NX', (/* error, results */) => {
       setTimeout(() => {
         isAlreadyScheduled(
@@ -327,7 +323,7 @@ describe('subscribe', () => {
     subscribeForScheduleExpiry(optns, (error, results) => {
       expect(error).to.not.exist;
       expect(results).to.exist;
-      expect(results).to.be.equal(expiredSubscriptionKeyFor(optns));
+      expect(results).to.be.equal(expiredEventsKeyFor(optns));
       done(error, results);
     });
   });
@@ -340,8 +336,8 @@ describe('subscribe', () => {
       return cb(new Error('Failed'));
     };
     const handleExpiredKey = (channel, expiredKey) => {
-      expect(channel).to.be.equal(expiredSubscriptionKeyFor({}));
-      expect(expiredKey).to.be.equal(scheduleExpiryKeyFor({ name }));
+      expect(channel).to.be.equal(expiredEventsKeyFor({}));
+      expect(expiredKey).to.be.equal(expiryKeyFor({ name }));
       done();
     };
     const optns = { name, interval, lastRunAt, perform, handleExpiredKey };

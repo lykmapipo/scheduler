@@ -2,17 +2,17 @@ import { expect } from '@lykmapipo/test-helpers';
 import { clear } from '@lykmapipo/redis-common';
 import {
   withDefaults,
-  expiredSubscriptionKeyFor,
-  scheduleExpiryKeyFor,
-  scheduleDataKeyFor,
+  expiredEventsKeyFor,
+  expiryKeyFor,
+  dataKeyFor,
   createScheduler,
   createListener,
-  enableExpiryNotifications,
-  isExpiryNotificationsEnabled,
+  enableKeyspaceEvents,
+  isKeyspaceEventsEnabled,
   quit,
 } from '../src/redis';
 
-describe('scheduler', () => {
+describe('redis', () => {
   before((done) => clear(done));
 
   it('should provide default options', () => {
@@ -24,6 +24,7 @@ describe('scheduler', () => {
     expect(options.db).to.exist.and.be.equal(0);
     expect(options.prefix).to.exist.and.be.equal('r');
     expect(options.separator).to.exist.and.be.equal(':');
+    expect(options.notifyKeyspaceEvents).to.exist.and.be.equal('xE');
     expect(options.eventPrefix).to.exist.and.be.equal('events');
     expect(options.lockPrefix).to.exist.and.be.equal('locks');
     expect(options.lockTtl).to.exist.and.be.equal(1000);
@@ -32,45 +33,45 @@ describe('scheduler', () => {
   });
 
   it('should derive key expired events subscription key', () => {
-    expect(expiredSubscriptionKeyFor).to.exist.and.be.a('function');
+    expect(expiredEventsKeyFor).to.exist.and.be.a('function');
 
-    expect(expiredSubscriptionKeyFor()).to.be.equal('__keyevent@0__:expired');
-    expect(expiredSubscriptionKeyFor({ db: undefined })).to.be.equal(
+    expect(expiredEventsKeyFor()).to.be.equal('__keyevent@0__:expired');
+    expect(expiredEventsKeyFor({ db: undefined })).to.be.equal(
       '__keyevent@0__:expired'
     );
-    expect(expiredSubscriptionKeyFor({ db: null })).to.be.equal(
+    expect(expiredEventsKeyFor({ db: null })).to.be.equal(
       '__keyevent@0__:expired'
     );
-    expect(expiredSubscriptionKeyFor({ db: 1 })).to.be.equal(
+    expect(expiredEventsKeyFor({ db: 1 })).to.be.equal(
       '__keyevent@1__:expired'
     );
   });
 
   it('should schedule expiry key', () => {
-    expect(scheduleExpiryKeyFor).to.exist.and.be.a('function');
+    expect(expiryKeyFor).to.exist.and.be.a('function');
 
     const name = 'sendEmail';
     const interval = '2 seconds';
 
-    expect(scheduleExpiryKeyFor({ name, interval })).to.be.equal(
-      'r:schedules:sendEmail'
+    expect(expiryKeyFor({ name, interval })).to.be.equal(
+      'r:schedules:keys:sendEmail'
     );
-    expect(scheduleExpiryKeyFor({ name, interval })).to.be.equal(
-      scheduleExpiryKeyFor({ name, interval })
+    expect(expiryKeyFor({ name, interval })).to.be.equal(
+      expiryKeyFor({ name, interval })
     );
   });
 
   it('should schedule data key', () => {
-    expect(scheduleDataKeyFor).to.exist.and.be.a('function');
+    expect(dataKeyFor).to.exist.and.be.a('function');
 
     const name = 'sendEmail';
     const interval = '2 seconds';
 
-    expect(scheduleDataKeyFor({ name, interval })).to.be.equal(
+    expect(dataKeyFor({ name, interval })).to.be.equal(
       'r:schedules:data:sendEmail'
     );
-    expect(scheduleDataKeyFor({ name, interval })).to.be.equal(
-      scheduleDataKeyFor({ name, interval })
+    expect(dataKeyFor({ name, interval })).to.be.equal(
+      dataKeyFor({ name, interval })
     );
   });
 
@@ -111,7 +112,15 @@ describe('scheduler', () => {
   });
 
   it('should check if expiry notifications enabled', (done) => {
-    isExpiryNotificationsEnabled((error, results) => {
+    isKeyspaceEventsEnabled((error, results) => {
+      expect(error).to.not.exist;
+      expect(results).to.exist;
+      done(error, results);
+    });
+  });
+
+  it('should check if expiry notifications enabled with options', (done) => {
+    isKeyspaceEventsEnabled({}, (error, results) => {
       expect(error).to.not.exist;
       expect(results).to.exist;
       done(error, results);
@@ -119,8 +128,18 @@ describe('scheduler', () => {
   });
 
   it('should enable expiry notifications', (done) => {
-    enableExpiryNotifications((/* error, ack */) => {
-      isExpiryNotificationsEnabled((error, enabled) => {
+    enableKeyspaceEvents((/* error, ack */) => {
+      isKeyspaceEventsEnabled((error, enabled) => {
+        expect(error).to.not.exist;
+        expect(enabled).to.be.true;
+        done(error, enabled);
+      });
+    });
+  });
+
+  it('should enable expiry notifications with options', (done) => {
+    enableKeyspaceEvents({}, (/* error, ack */) => {
+      isKeyspaceEventsEnabled((error, enabled) => {
         expect(error).to.not.exist;
         expect(enabled).to.be.true;
         done(error, enabled);

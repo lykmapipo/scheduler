@@ -19,8 +19,29 @@
  * every('*\/2 * * * * *', 'sendEmail', (done) => { ... });
  *
  */
-export const every = (/* interval, name, handler, optns */) => {};
+export const every = (/* interval, name, handler, optns */) => {
+  // TODO: define schedule
+  // TODO: register schedule
+};
 
-export const start = () => {};
-export const clear = () => {};
-export const stop = () => {};
+export const start = () => {
+  // TODO: ensure options
+  // TODO: load path schedules
+  // TODO: create redis clients
+  // TODO: enable expiry notifications
+  // TODO: subscribe for key expiry
+  // TODO: schedule next run for all schedules
+  // TODO: clearup/restore schedules
+};
+
+export const clear = () => {
+  // TODO: obtain scheduler keys wildcard
+  // TODO: clear schedules expiry keys(r:schedules:keys*)
+  // TODO: clear schedules data(r:schedules:data*)
+  // TODO: reset schedule registry
+};
+
+export const stop = () => {
+  // TODO: quit schdeduler clients(scheduler+listener)
+  // TODO: quit other clients
+};

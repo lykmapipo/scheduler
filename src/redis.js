@@ -1,5 +1,5 @@
-import { forEach } from 'lodash';
-import { compact, mergeObjects } from '@lykmapipo/common';
+import { forEach, isFunction, reduce } from 'lodash';
+import { compact, mergeObjects, wrapCallback } from '@lykmapipo/common';
 import { getString } from '@lykmapipo/env';
 import {
   withDefaults as withRedisCommonDefaults,
@@ -18,13 +18,15 @@ let listener; // expiry event client
  * @function withDefaults
  * @name withDefaults
  * @description Merge provided options with defaults.
- * @param {object} [optns] provided options
+ * @param {object} [optns] Provided options
  * @param {string} [optns.url='redis://127.0.0.1:6379'] Valid redis url
+ * @param {number} [optns.db=0] Valid redis database number
  * @param {string} [optns.prefix='r'] Valid redis key prefix
  * @param {string} [optns.separator=':'] Valid redis key separator
+ * @param {string} [optns.notifyKeyspaceEvents='xE'] Enabled keyspace events
  * @param {string} [optns.eventPrefix='events'] Valid redis events key prefix
- * @param {number} [optns.lockTtl=1000] Valid redis ttl in milliseconds
- * @param {string} [optns.schedulePrefix='schedules'] Valid redis schedules key prefix
+ * @param {number} [optns.lockTtl=1000] Valid redis lock ttl in milliseconds
+ * @param {string} [optns.schedulePrefix='schedules'] Valid schedules key prefix
  * @param {string} [optns.schedulesPath='`${process.cwd()}/schedules`'] Valid schedules path
  * @returns {object} merged options
  * @author lally elias <lallyelias87@gmail.com>
@@ -35,15 +37,15 @@ let listener; // expiry event client
  * @public
  * @example
  *
- * const optns = { url: process.env.REDIS_URL, prefix: 'r', ... };
+ * const optns = { prefix: 'r', ... };
  * const options = withDefaults(optns);
- *
- * // => { url: ...}
+ * //=> { prefix: 'r', url: ...}
  *
  */
 export const withDefaults = (optns) => {
-  // defaults
+  // prepare defaults from .env and well known
   const defaults = withRedisCommonDefaults({
+    notifyKeyspaceEvents: getString('REDIS_NOTIFY_KEYSPACE_EVENTS', 'xE'),
     schedulePrefix: getString('REDIS_SCHEDULE_PREFIX', 'schedules'),
     schedulesPath: getString(
       'REDIS_SCHEDULE_PATH',
@@ -59,12 +61,12 @@ export const withDefaults = (optns) => {
 };
 
 /**
- * @function expiredSubscriptionKeyFor
- * @name expiredSubscriptionKeyFor
- * @description Obtain key to subscribe on key expired events
- * @param {object} [optns] provided options
- * @param {string} [optns.db=0] Valid redis database number
- * @returns {string} key expires event subscription key
+ * @function expiredEventsKeyFor
+ * @name expiredEventsKeyFor
+ * @description Derive redis subscription key for key expired events
+ * @param {object} [optns] Provided options
+ * @param {number} [optns.db=0] Valid redis database number
+ * @returns {string} Key expired events subscription key
  * @author lally elias <lallyelias87@gmail.com>
  * @license MIT
  * @since 0.1.0
@@ -73,28 +75,28 @@ export const withDefaults = (optns) => {
  * @public
  * @example
  *
- * expiredSubscriptionKeyFor();
+ * expiredEventsKeyFor();
  * //=> __keyevent@0__:expired
  *
- * expiredSubscriptionKeyFor({ db:2 });
+ * expiredEventsKeyFor({ db: 2 });
  * //=> __keyevent@2__:expired
  *
  */
-export const expiredSubscriptionKeyFor = (optns) => {
+export const expiredEventsKeyFor = (optns) => {
   // obtain redis db
   const { db } = withDefaults(optns);
-  // derive expired events subscription key
+  // derive key expired events subscription key
   const key = `__keyevent@${db}__:expired`;
-  // return expired events subscription key
+  // return key expired events subscription key
   return key;
 };
 
 /**
- * @function scheduleExpiryKeyFor
- * @name scheduleExpiryKeyFor
+ * @function expiryKeyFor
+ * @name expiryKeyFor
  * @description Generate schedule expiry key
- * @param {object} [optns] provided options
- * @param {string} [optns.name] Valid schedule name
+ * @param {object} optns Provided options
+ * @param {string} optns.name Valid schedule name
  * @returns {string} schedule expiry key
  * @author lally elias <lallyelias87@gmail.com>
  * @license MIT
@@ -104,19 +106,16 @@ export const expiredSubscriptionKeyFor = (optns) => {
  * @public
  * @example
  *
- * scheduleExpiryKeyFor('sendEmail');
- * // => 'r:schedules:sendEmail';
- *
- * scheduleExpiryKeyFor('send', 'email');
- * // => 'r:schedules:send:email'
+ * expiryKeyFor({ name: 'sendEmail' });;
+ * //=> 'r:schedules:keys:sendEmail';
  *
  */
-export const scheduleExpiryKeyFor = (optns) => {
+export const expiryKeyFor = (optns) => {
   // obtain options
   const { schedulePrefix, name } = withDefaults(optns);
 
   // collect key parts
-  const parts = compact([schedulePrefix, name]);
+  const parts = compact([schedulePrefix, 'keys', name]);
 
   // derive schedule expiry key
   const scheduleExpiryKey = keyFor(...parts);
@@ -126,12 +125,12 @@ export const scheduleExpiryKeyFor = (optns) => {
 };
 
 /**
- * @function scheduleDataKeyFor
- * @name scheduleDataKeyFor
- * @description Generate lock key
- * @param {object} [optns] provided options
- * @param {string} [optns.name] Valid schedule name
- * @returns {string} schedule expiry key
+ * @function dataKeyFor
+ * @name dataKeyFor
+ * @description Generate schedule data key
+ * @param {object} optns Provided options
+ * @param {string} optns.name Valid schedule name
+ * @returns {string} schedule data key
  * @author lally elias <lallyelias87@gmail.com>
  * @license MIT
  * @since 0.1.0
@@ -140,14 +139,11 @@ export const scheduleExpiryKeyFor = (optns) => {
  * @public
  * @example
  *
- * scheduleDataKeyFor('sendEmail');
- * // => 'r:schedules:data:sendEmail';
- *
- * scheduleDataKeyFor('send', 'email');
- * // => 'r:schedules:data:send:email'
+ * expiryKeyFor({ name: 'sendEmail' });;
+ * //=> 'r:schedules:data:sendEmail';
  *
  */
-export const scheduleDataKeyFor = (optns) => {
+export const dataKeyFor = (optns) => {
   // obtain options
   const { schedulePrefix, name } = withDefaults(optns);
 
@@ -164,12 +160,12 @@ export const scheduleDataKeyFor = (optns) => {
 /**
  * @function createScheduler
  * @name createScheduler
- * @description Create redis client for registering schedules
- * @param {object} optns valid options
- * @param {string} [optns.url='redis://127.0.0.1:6379'] valid redis url
- * @param {boolean} [optns.recreate=false] whether to create new client
- * @param {string} [optns.prefix='r'] client key prefix
- * @returns {object} redis client
+ * @description Create redis client for scheduling
+ * @param {object} optns Valid redis options
+ * @param {string} [optns.url='redis://127.0.0.1:6379'] Valid redis url
+ * @param {number} [optns.db=0] Valid redis database number
+ * @param {boolean} [optns.recreate=false] Whether to create new client
+ * @returns {object} redis client for scheduling
  * @author lally elias <lallyelias87@gmail.com>
  * @license MIT
  * @since 0.1.0
@@ -179,8 +175,10 @@ export const scheduleDataKeyFor = (optns) => {
  * @example
  *
  * const scheduler = createScheduler();
+ * //=> RedisClient { ... }
  *
  * const scheduler = createScheduler({ recreate: true });
+ * //=> RedisClient { ... }
  *
  */
 export const createScheduler = (optns) => {
@@ -204,11 +202,11 @@ export const createScheduler = (optns) => {
  * @function createListener
  * @name createListener
  * @description Create redis client for listening schedules
- * @param {object} optns valid options
- * @param {string} [optns.url='redis://127.0.0.1:6379'] valid redis url
- * @param {boolean} [optns.recreate=false] whether to create new client
- * @param {string} [optns.prefix='r'] client key prefix
- * @returns {object} redis client
+ * @param {object} optns Valid redis options
+ * @param {string} [optns.url='redis://127.0.0.1:6379'] Valid redis url
+ * @param {number} [optns.db=0] Valid redis database number
+ * @param {boolean} [optns.recreate=false] Whether to create new client
+ * @returns {object} redis client for schedule listening
  * @author lally elias <lallyelias87@gmail.com>
  * @license MIT
  * @since 0.1.0
@@ -218,8 +216,10 @@ export const createScheduler = (optns) => {
  * @example
  *
  * const listener = createListener();
+ * //=> RedisClient { ... }
  *
  * const listener = createListener({ recreate: true });
+ * //=> RedisClient { ... }
  *
  */
 export const createListener = (optns) => {
@@ -240,11 +240,15 @@ export const createListener = (optns) => {
 };
 
 /**
- * @function enableExpiryNotifications
- * @name enableExpiryNotifications
- * @description Enable redis expiry keys notifications
+ * @function enableKeyspaceEvents
+ * @name enableKeyspaceEvents
+ * @description Enable redis keyspace notifications
+ * @param {object} [optns] Provided options
+ * @param {string} [optns.url='redis://127.0.0.1:6379'] Valid redis url
+ * @param {number} [optns.db=0] Valid redis database number
+ * @param {string} [optns.notifyKeyspaceEvents='xE'] Enabled keyspace events
  * @param {Function} [done] callback to invoke on success or failure
- * @returns {string} Expiry notification ack
+ * @returns {string} notify keyspace notifications ack
  * @author lally elias <lallyelias87@gmail.com>
  * @license MIT
  * @since 0.1.0
@@ -253,20 +257,31 @@ export const createListener = (optns) => {
  * @public
  * @example
  *
- * enableExpiryNotifications();
- * enableExpiryNotifications((error, results) => { ... });
+ * const notifyKeyspaceEvents = 'xE';
+ * const optns = { notifyKeyspaceEvents };
+ * enableKeyspaceEvents(optns, (error, results) => { ... });
+ * //=> 'OK'
  *
  */
-export const enableExpiryNotifications = (done) => {
-  // TODO: use env REDIS_NOTIFY_KEYSPACE_EVENTS=xE
-  // TODO: support optns
-  return config('SET', 'notify-keyspace-events', 'xE', done);
+export const enableKeyspaceEvents = (optns, done) => {
+  // ensure options
+  const { notifyKeyspaceEvents } = isFunction(optns)
+    ? withDefaults()
+    : withDefaults(optns);
+  const cb = isFunction(optns) ? wrapCallback(optns) : wrapCallback(done);
+
+  // TODO: use setConfig(optns, key, value, done);
+  // set keyspace notification config
+  return config('SET', 'notify-keyspace-events', notifyKeyspaceEvents, cb);
 };
 
 /**
- * @function isExpiryNotificationsEnabled
- * @name isExpiryNotificationsEnabled
- * @description Check if redis expiry keys notifications enabled
+ * @function isKeyspaceEventsEnabled
+ * @name isKeyspaceEventsEnabled
+ * @description Check if redis keyspace notifications enabled
+ * @param {object} [optns] Provided options
+ * @param {string} [optns.url='redis://127.0.0.1:6379'] Valid redis url
+ * @param {number} [optns.db=0] Valid redis database number
  * @param {Function} [done] callback to invoke on success or failure
  * @returns {boolean} true if enabled else false
  * @author lally elias <lallyelias87@gmail.com>
@@ -277,19 +292,30 @@ export const enableExpiryNotifications = (done) => {
  * @public
  * @example
  *
- * isExpiryNotificationsEnabled((error, results) => { ... });
+ * const optns = {};
+ * isKeyspaceEventsEnabled(optns, (error, results) => { ... });
+ * //=> true
  *
  */
-export const isExpiryNotificationsEnabled = (done) => {
-  // TODO: support optns
+export const isKeyspaceEventsEnabled = (optns, done) => {
+  // ensure options
+  const { notifyKeyspaceEvents } = isFunction(optns)
+    ? withDefaults()
+    : withDefaults(optns);
+  const cb = isFunction(optns) ? wrapCallback(optns) : wrapCallback(done);
+
+  // get keyspace notification config
   return config('GET', 'notify-keyspace-events', (error, results) => {
     const enabled = !!(
       results &&
       results[1] &&
-      results[1].indexOf('E') > -1 &&
-      results[1].indexOf('x') > -1
+      reduce(
+        notifyKeyspaceEvents.split(''),
+        (has, part) => results[1].indexOf(part) > -1 && has,
+        true
+      )
     );
-    return done(error, enabled);
+    return cb(error, enabled);
   });
 };
 
@@ -297,7 +323,7 @@ export const isExpiryNotificationsEnabled = (done) => {
  * @function quit
  * @name quit
  * @description Quit and restore redis clients states
- * @returns {object} redis clients
+ * @returns {object} redis clients state
  * @author lally elias <lallyelias87@gmail.com>
  * @license MIT
  * @since 0.1.0
@@ -312,6 +338,7 @@ export const isExpiryNotificationsEnabled = (done) => {
 export const quit = () => {
   // TODO: support optns
   // TODO: client.end if callback passed
+  // TODO: disableKeyspaceEvents??
 
   // quit other redis client
   const redisClients = quitRedisClients();

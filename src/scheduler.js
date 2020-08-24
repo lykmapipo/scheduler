@@ -4,10 +4,10 @@ import { mergeObjects } from '@lykmapipo/common';
 
 import { nextRunTimeFor } from './timers';
 import {
-  expiredSubscriptionKeyFor,
+  expiredEventsKeyFor,
   createListener,
   createScheduler,
-  scheduleExpiryKeyFor,
+  expiryKeyFor,
   withDefaults,
 } from './redis';
 
@@ -196,7 +196,7 @@ export const isAlreadyScheduled = (optns, done) => {
   const redisClient = createScheduler(optns);
 
   // derive schedule expiry key
-  const scheduleExpiryKey = scheduleExpiryKeyFor(optns);
+  const scheduleExpiryKey = expiryKeyFor(optns);
 
   // check if key exists and has expiry set
   return redisClient.pttl(scheduleExpiryKey, (error, ttl) => {
@@ -244,7 +244,7 @@ export const scheduleNextRun = (optns, done) => {
   const redisClient = createScheduler(optns);
 
   // derive schedule expiry key
-  const scheduleExpiryKey = scheduleExpiryKeyFor(optns);
+  const scheduleExpiryKey = expiryKeyFor(optns);
 
   // compute next run time
   const nextRunAt = nextRunTimeFor(interval, lastRunAt, timezone);
@@ -295,11 +295,12 @@ export const subscribeForScheduleExpiry = (optns, done) => {
   const redisClient = createListener(optns);
 
   // derive expiry events subscription key
-  const expiredSubscriptionKey = expiredSubscriptionKeyFor(optns);
+  const expiredSubscriptionKey = expiredEventsKeyFor(optns);
 
   // listen for key expired events
   redisClient.on('message', (channel, expiredKey) => {
-    // TODO: test if the expired key is for scheduler
+    // TODO: test if the expired key is for this scheduler
+    // TODO: test if the channel is for this scheduler
     // TODO:events.emit('schedule error', new Error('Unknown expiry key'))
 
     // safe invoke key expired event handler
@@ -311,7 +312,7 @@ export const subscribeForScheduleExpiry = (optns, done) => {
     }
   });
 
-  // TODO: enableExpiryNotifications(optns, done);
+  // TODO: enableKeyspaceEvents(optns, done);
   // TODO: const cb = wrapCallback(done);
   // subscribe for key expired events
   return redisClient.subscribe(expiredSubscriptionKey, done);
