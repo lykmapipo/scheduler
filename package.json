@@ -81,7 +81,7 @@
     "lint-staged": "^10.2.11",
     "lodash.template": "^4.5.0",
     "mime": "^2.4.6",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "mocha": "^8.1.1",
     "npm-check-updates": "^7.1.1",
     "nyc": "^15.1.0",
