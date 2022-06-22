@@ -95,7 +95,7 @@
     "@lykmapipo/common": ">=0.39.0",
     "@lykmapipo/env": ">=0.17.17",
     "@lykmapipo/redis-common": ">=0.8.0",
-    "async": ">=3.2.0",
+    "async": ">=3.2.2",
     "cron": ">=1.8.2",
     "date.js": ">=0.3.3",
     "human-interval": ">=1.0.0",
