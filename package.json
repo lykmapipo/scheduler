@@ -101,7 +101,7 @@
     "human-interval": ">=1.0.0",
     "lodash": ">=4.17.20",
     "moment": ">=2.27.0",
-    "moment-timezone": ">=0.5.31",
+    "moment-timezone": ">=0.5.35",
     "node-redis-warlock": ">=0.2.0",
     "redis": ">=3.0.2",
     "require-all": ">=3.0.0",
