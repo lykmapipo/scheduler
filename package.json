@@ -82,7 +82,7 @@
     "lodash.template": "^4.5.0",
     "mime": "^2.4.6",
     "minimist": "^1.2.5",
-    "mocha": "^8.1.1",
+    "mocha": "^8.4.0",
     "npm-check-updates": "^7.1.1",
     "nyc": "^15.1.0",
     "prettier": "^2.0.5",
